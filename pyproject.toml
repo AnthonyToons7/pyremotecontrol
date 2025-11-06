@@ -1,0 +1,10 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "remote-control"
+version = "0.1.0"
+description = "Remote control library using pyautogui"
+authors = [{ name = "StarryVyomi" }]
+dependencies = ["Flask>=3.0.0"]

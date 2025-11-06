@@ -1,0 +1,9 @@
+pyproject.toml
+pyremotecontrol/__init__.py
+pyremotecontrol/remotecontrol.py
+pyremotecontrol/core/endpoints.py
+remote_control.egg-info/PKG-INFO
+remote_control.egg-info/SOURCES.txt
+remote_control.egg-info/dependency_links.txt
+remote_control.egg-info/requires.txt
+remote_control.egg-info/top_level.txt
