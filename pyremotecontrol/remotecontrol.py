@@ -1,119 +1,117 @@
 import logging
 import sys
+import os
 import threading
 import pyautogui
 from flask import Flask, request
 
-cli = sys.modules["flask.cli"]
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
+app = Flask('app')
 
-app = Flask("app")
-
-pyautogui.FAILSAFE = False
 moving = False
 drag = False
-type_data = ""
-old_data = ""
+type_data = ''
+old_data = ''
 coords = (0, 0)
-lastcords = (0, 0)
-lstmcord = (0, 0)
-lstlen = 0
-coords = [(0, 0)]
+previous_mouse_coordinates = (0, 0)
+previous_scroll_coordinates = (0, 0)
+coordinates = [(0, 0)]
 
 def start_server(port=8000, print_msg=True):
     if print_msg:
-        print("Server started at local_ip_of_this_pc:%s" % port)
-    app.run(host="0.0.0.0", port=port)
+        print('Server started')
+    app.run(host='0.0.0.0', port=port, debug=False)
 
-@app.route("/", methods=["GET"])
+@app.route('/', methods=['GET'])
 def get_content():
-    file = open("./core/content.html", "r")
-    content = file.read()
-    if content not '':
-        return content
+    base_dir = os.path.dirname(__file__)
+    file_path = os.path.join(base_dir, 'core', 'content.html')
 
-@app.route("/handler", methods=["POST"])
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+
+    if content != '':
+        return content
+    return 'No content found.'
+
+@app.route('/handler', methods=['POST'])
 def handle():
-    global moving, cordlst, previous_coordinates
-    lst = []
-    x_axis = float(request.form["a"])
-    y_axis = float(request.form["b"])
+    global moving, previous_mouse_coordinates
+    x_axis = float(request.form['x_axis'])
+    y_axis = float(request.form['y_axis'])
     moving = True
     coordinates = (x_axis, y_axis)
-    lx, ly = previous_coordinates
+    lx, ly = previous_mouse_coordinates
     cx, cy = coordinates
-    threading.Thread(target=lambda: p.moveRel((cx - lx) * 2, (cy - ly) * 2)).start()
-    previous_coordinates = coordinates
+    threading.Thread(target=lambda: pyautogui.moveRel((cx - lx) * 4, (cy - ly) * 4)).start()
+    previous_mouse_coordinates = coordinates
+    return ''
 
 
-@app.route("/scroller", methods=["POST"])
-def scrollerr() -> str:
-    global moving, cordlst, lastcords2
-    x_axis = float(request.form["a"])
-    y_axis = float(request.form["b"])
-    coordinates = (a, b)
-    lx, ly = lastcords2
+@app.route('/scroller', methods=['POST'])
+def scroll():
+    global moving, previous_scroll_coordinates
+    x_axis = float(request.form['x_axis'])
+    y_axis = float(request.form['y_axis'])
+    coordinates = (x_axis, y_axis)
+    lx, ly = previous_scroll_coordinates
     cx, cy = coordinates
     if cy < ly:
-        threading.Thread(target=lambda: p.scroll(30)).start()
-    if cy > ly:
-        threading.Thread(target=lambda: p.scroll(-30)).start()
-    lastcords2 = coordinates
+        threading.Thread(target=lambda: pyautogui.scroll(50)).start()
+    elif cy > ly:
+        threading.Thread(target=lambda: pyautogui.scroll(-50)).start()
+    previous_scroll_coordinates = coordinates
+    return ''
 
+@app.route('/tstart', methods=['POST'])
+def start():
+    global previous_mouse_coordinates, previous_scroll_coordinates
+    x_axis = float(request.form['x_axis'])
+    y_axis = float(request.form['y_axis'])
+    previous_mouse_coordinates = (x_axis, y_axis)
+    previous_scroll_coordinates = (x_axis, y_axis)
+    return ''
 
-@app.route("/tstart", methods=["POST"])
-def startt() -> str:
-    global previous_coordinates, lastcords2
-    x_axis = float(request.form["a"])
-    y_axis = float(request.form["b"])
-    previous_coordinates = (x_axis, y_axis)
-    lastcords2 = (x_axis, y_axis)
-
-
-@app.route("/click", methods=["POST"])
-def do_click() -> str:
+@app.route('/click', methods=['POST'])
+def click():
     global moving
     if not moving:
-        a = request.form["a"]
-        # print(a)
-        a = float(a)
-        if a < 400:
-            p.click()
-        if a >= 400:
-            p.rightClick()
+        print(request.form)
+        x_axis = request.form['x_axis']
+        x_axis = float(x_axis)
+        if x_axis < 400:
+            pyautogui.click()
+        if x_axis >= 400:
+            pyautogui.rightClick()
 
     moving = False
+    return ''
 
-
-@app.route("/typed", methods=["POST"])
-def typeit() -> str:
+@app.route('/typed', methods=['POST'])
+def typing():
     global type_data, old_data
-    data = request.form["data"]
+    data = request.form['data']
     type_data = str(data)
     if len(type_data) > len(old_data):
-        p.typewrite(type_data[len(type_data) - 1])
+        pyautogui.typewrite(type_data[len(type_data) - 1])
     else:
-        p.press("backspace", len(old_data) - len(type_data))
+        pyautogui.press('backspace', len(old_data) - len(type_data))
     old_data = type_data
+    return ''
 
+@app.route('/enter', methods=['POST'])
+def enter():
+    pyautogui.press('enter')
+    return ''
 
-@app.route("/enter", methods=["POST"])
-def slashN() -> str:
-    p.press("enter")
-
-
-@app.route("/drag", methods=["POST"])
-def toggle_mouse_drag() -> str:
+@app.route('/drag', methods=['POST'])
+def toggle_mouse_drag():
     global drag
     drag = not drag
 
     if drag:
-        p.mouseDown()
+        pyautogui.mouseDown()
     else:
-        p.mouseUp()
-
-
-def start_server(port=8000, print_msg=True):
-    if print_msg:
-        print("Server started at local_ip_of_this_pc:%s" % port)
-        print("Print Ctrl+C to exit")
-    app.run(host="0.0.0.0", port=port)
+        pyautogui.mouseUp()
+    return ''
