@@ -8,7 +8,7 @@ cli = sys.modules["flask.cli"]
 
 app = Flask("app")
 
-p.FAILSAFE = False
+pyautogui.FAILSAFE = False
 moving = False
 drag = False
 type_data = ""
