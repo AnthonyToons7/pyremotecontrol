@@ -34,6 +34,10 @@ And make a venv (virtual envorinment) to prevent global installs:
 ```
 python -m venv venv
 venv\Scripts\activate
+```
+
+When your local environment is activated, run the installs:
+```
 pip install pyautogui
 pip install flask
 python main.py
