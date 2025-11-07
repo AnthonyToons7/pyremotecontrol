@@ -10,6 +10,13 @@ Drag the library into your project, then:
 
 This should install the library. It's better if you work in local environment files.
 
+If you dont want to make a project, then putting main.py in the root is enough:
+
+```
+import pyremotecontrol
+pyremotecontrol.start_server()
+```
+
 Now, once installed, you need to import it into your project:
 
 ```
